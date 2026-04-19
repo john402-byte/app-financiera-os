@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance_OS // Currency Terminal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        :root { --neon-cyan: #00f3ff; --neon-pink: #ff00ff; --dark-bg: #050505; --card-bg: #111; }
+        body { background-color: var(--dark-bg); color: #fff; font-family: 'Share Tech Mono', monospace; }
+        .navbar { background: #000; border-bottom: 2px solid var(--neon-cyan); padding: 10px 25px; }
+        .profile-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--neon-cyan); cursor: pointer; }
+        .neon-title { font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        .neon-card { background: var(--card-bg); border: 1px solid var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 255, 0.2); transition: 0.3s; }
+        .neon-card:hover { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
+        .calc-section { background: #0a0a0a; border: 2px solid var(--neon-cyan); padding: 30px; border-radius: 15px; }
+        .flag-icon { width: 25px; margin-right: 10px; border-radius: 3px; }
+        .modal-content { background: #111; border: 2px solid var(--neon-cyan); color: #fff; }
+        .tech-stack span { background: rgba(0, 243, 255, 0.1); color: var(--neon-cyan); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin: 2px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar d-flex justify-content-between align-items-center">
+    <div class="neon-title h4 m-0">FINANCE_OS // V.1.0</div>
+    <img src="https://i.pravatar.cc/150?u=john402" class="profile-img" data-bs-toggle="modal" data-bs-target="#profileModal">
+</nav>
+
+<div class="container mt-5">
+    <div class="calc-section mb-5">
+        <h3 class="neon-title mb-4 text-center"><i class="fas fa-microchip"></i> CALCULADOR MAESTRO (DOP)</h3>
+        <div class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <input type="number" id="amountInput" class="form-control bg-dark text-white border-info form-control-lg" placeholder="Cantidad en DOP">
+            </div>
+            <div class="col-md-2 text-center">
+                <i class="fas fa-exchange-alt text-info h2"></i>
+            </div>
+            <div class="col-md-5">
+                <select id="currencySelect" class="form-select bg-dark text-white border-info form-control-lg"></select>
+            </div>
+        </div>
+        <div class="mt-4 text-center">
+            <div id="calcResult" class="display-3 fw-bold text-info">0.00</div>
+            <div class="text-secondary small text-uppercase">Conversión Final Destino</div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="currencyGrid"></div>
+
+    <div class="mt-5 neon-card p-4 rounded-3">
+        <h3 class="neon-title mb-4">TENDENCIA USD/DOP (6 MESES)</h3>
+        <div id="chart"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body text-center p-5">
+                <img src="https://i.pravatar.cc/150?u=john402" class="rounded-circle mb-3 border border-info" width="100">
+                <h2 class="neon-title">JOHN HANSER</h2>
+                <div class="tech-stack mb-3">
+                    <span>HTML5</span><span>CSS3</span><span>JS ES6</span><span>ApexCharts</span><span>RestAPI</span>
+                </div>
+                <p>Desarrollador enfocado en soluciones de visualización de datos financieros y estéticas Cyberpunk.</p>
+                <div class="h3 mt-3">
+                    <a href="#" class="text-info me-3"><i class="fab fa-github"></i></a>
+                    <a href="#" class="text-info"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const currencies = [
+        {code: 'USD', name: 'Dólar USA', flag: 'us', mockRate: 0.0169},
+        {code: 'EUR', name: 'Euro', flag: 'eu', mockRate: 0.0158},
+        {code: 'GBP', name: 'Libra Esterlina', flag: 'gb', mockRate: 0.0135},
+        {code: 'CAD', name: 'Dólar Canadiense', flag: 'ca', mockRate: 0.0232},
+        {code: 'JPY', name: 'Yen Japonés', flag: 'jp', mockRate: 2.54},
+        {code: 'MXN', name: 'Peso Mexicano', flag: 'mx', mockRate: 0.28},
+        {code: 'BRL', name: 'Real Brasileño', flag: 'br', mockRate: 0.086},
+        {code: 'CHF', name: 'Franco Suizo', flag: 'ch', mockRate: 0.015},
+        {code: 'CLP', name: 'Peso Chileno', flag: 'cl', mockRate: 15.90},
+        {code: 'COP', name: 'Peso Colombiano', flag: 'co', mockRate: 65.40},
+        {code: 'CNY', name: 'Yuan Chino', flag: 'cn', mockRate: 0.12},
+        {code: 'RUB', name: 'Rublo Ruso', flag: 'ru', mockRate: 1.56}
+    ];
+
+    let rates = {};
+
+    function populateSelect() {
+        const sel = document.getElementById('currencySelect');
+        sel.innerHTML = '<option value="" disabled selected>Seleccionar Divisa</option>';
+        currencies.forEach(c => {
+            sel.innerHTML += `<option value="${c.code}">${c.name} (${c.code})</option>`;
+        });
+    }
+
+    async function init() {
+        populateSelect();
+        
+        // Timer de seguridad: Si la API no carga en 2 segundos, usamos Mock Data
+        const timer = setTimeout(() => {
+            if (Object.keys(rates).length === 0) {
+                console.log("Usando datos de respaldo...");
+                currencies.forEach(c => rates[c.code] = c.mockRate);
+                renderUI();
+            }
+        }, 2000);
+
+        try {
+            const res = await fetch(`https://v6.exchangerate-api.com/v6/3a2d5926c06a88b52f5379f8/latest/DOP`);
+            const data = await res.json();
+            if(data.conversion_rates) {
+                clearTimeout(timer);
+                rates = data.conversion_rates;
+                renderUI();
+            }
+        } catch (e) { console.log("API fuera de servicio."); }
+    }
+
+    function renderUI() {
+        const grid = document.getElementById('currencyGrid');
+        grid.innerHTML = '';
+        currencies.forEach(c => {
+            const val = (1 / rates[c.code]).toFixed(2);
+            grid.innerHTML += `
+                <div class="col">
+                    <div class="card neon-card p-3 h-100 text-center">
+                        <img src="https://flagcdn.com/w40/${c.flag}.png" class="mx-auto mb-2" style="width:30px">
+                        <div class="h5 text-info mb-1">${c.code}</div>
+                        <div class="h4 m-0">RD$ ${val}</div>
+                        <small class="text-secondary">${c.name}</small>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function calculate() {
+        const amt = document.getElementById('amountInput').value;
+        const cur = document.getElementById('currencySelect').value;
+        const resDisp = document.getElementById('calcResult');
+        if(amt && cur && rates[cur]) {
+            resDisp.innerText = (amt * rates[cur]).toFixed(2) + " " + cur;
+        }
+    }
+
+    document.getElementById('amountInput').addEventListener('input', calculate);
+    document.getElementById('currencySelect').addEventListener('change', calculate);
+
+    // Gráfico
+    new ApexCharts(document.querySelector("#chart"), {
+        series: [{ name: 'RD$', data: [56.8, 57.2, 58.1, 58.5, 59.1, 59.8] }],
+        chart: { type: 'area', height: 300, toolbar: {show:false} },
+        colors: ['#00f3ff'],
+        stroke: { curve: 'smooth' },
+        xaxis: { categories: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'] },
+        theme: { mode: 'dark' }
+    }).render();
+
+    window.onload = init;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
